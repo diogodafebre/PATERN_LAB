@@ -17,7 +17,7 @@
 namespace app
 {
 
-ButtonEventsHandler Factory::_buttonEventsHandler;
+mdw::button::ButtonEventsHandler Factory::_buttonEventsHandler;
 ButtonEventsLogger Factory::_buttonEventsLogger;
 
 Factory::Factory() {}

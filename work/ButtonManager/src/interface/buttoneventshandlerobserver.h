@@ -3,7 +3,11 @@
 
 #include "buttoneventshandlersubject.h"
 
-class ButtonEventsHandler;
+namespace mdw {
+namespace button {
+	class ButtonEventsHandler;
+}
+}
 
 namespace interface {
 
@@ -13,7 +17,7 @@ namespace interface {
 class ButtonEventsHandlerObserver
 {
 	friend class ButtonEventsHandlerSubject;
-	friend class ::ButtonEventsHandler;
+	friend class mdw::button::ButtonEventsHandler;
 
 public:
 	typedef ButtonEventsHandlerSubject::ButtonIndex ButtonIndex;

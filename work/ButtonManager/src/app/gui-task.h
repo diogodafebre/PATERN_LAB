@@ -25,7 +25,7 @@ class GuiTask : public XFBehavior,
 public:
     GuiTask();
 
-    void initialize(ButtonEventsHandler & buttonEventsHandler);
+    void initialize(mdw::button::ButtonEventsHandler & buttonEventsHandler);
     void start();
 
     // From XFBehavior

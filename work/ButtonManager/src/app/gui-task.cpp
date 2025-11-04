@@ -33,7 +33,7 @@ GuiTask::GuiTask():
 
 }
 
-void GuiTask::initialize(ButtonEventsHandler & buttonEventsHandler)
+void GuiTask::initialize(mdw::button::ButtonEventsHandler & buttonEventsHandler)
 {
     bool success = buttonEventsHandler.subscribe(this);
     assert(success);

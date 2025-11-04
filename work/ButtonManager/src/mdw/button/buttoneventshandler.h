@@ -76,7 +76,4 @@ private:
 } // namespace button
 } // namespace mdw
 
-// Legacy support - ButtonEventsHandler in global namespace for backward compatibility
-using ButtonEventsHandler = mdw::button::ButtonEventsHandler;
-
 #endif // MDW_BUTTON_BUTTONEVENTSHANDLER_H
