@@ -1,12 +1,40 @@
 #include "buttoneventshandler.h"
+#include "buttonstatesm.h"
 #include "interface/buttoneventshandlerobserver.h"
-#include "board/hal/buttons.h"
+#include "board/buttonscontroller.h"
 #include "trace/trace.h"
 #include "xf/customevent.h"
-#include <zephyr/kernel.h>
 
 namespace mdw {
 namespace button {
+
+/**
+ * @brief Internal event carrying button index for short press notification
+ */
+class evInternalShortPress : public XFCustomEvent
+{
+public:
+    evInternalShortPress(uint8_t buttonIndex, interface::XFBehavior * pBehavior) :
+        XFCustomEvent(ButtonEventsHandler::evNotifyShortPress, pBehavior),
+        buttonIndex(buttonIndex)
+    {}
+
+    uint8_t buttonIndex;
+};
+
+/**
+ * @brief Internal event carrying button index for long press notification
+ */
+class evInternalLongPress : public XFCustomEvent
+{
+public:
+    evInternalLongPress(uint8_t buttonIndex, interface::XFBehavior * pBehavior) :
+        XFCustomEvent(ButtonEventsHandler::evNotifyLongPress, pBehavior),
+        buttonIndex(buttonIndex)
+    {}
+
+    uint8_t buttonIndex;
+};
 
 ButtonEventsHandler::ButtonEventsHandler()
 : XFBehavior(/* active = */ true, /* threadName = */ "ButtonEventsHandler")
@@ -18,42 +46,81 @@ ButtonEventsHandler::ButtonEventsHandler()
         observers_[i] = nullptr;
     }
 
-    // Initialize button states
+    // Create ButtonStateSm instances for each button
     for (uint8_t i = 0; i < BUTTON_COUNT; ++i)
     {
-        buttonStates_[i].pressed = false;
-        buttonStates_[i].previousPressed = false;
-        buttonStates_[i].pressStartTime = 0;
-        buttonStates_[i].longPressNotified = false;
+        buttonStateMachines_[i] = new ButtonStateSm(i, *this);
     }
 }
 
 ButtonEventsHandler::~ButtonEventsHandler()
 {
+    // Delete ButtonStateSm instances
+    for (uint8_t i = 0; i < BUTTON_COUNT; ++i)
+    {
+        if (buttonStateMachines_[i])
+        {
+            delete buttonStateMachines_[i];
+            buttonStateMachines_[i] = nullptr;
+        }
+    }
 }
 
 bool ButtonEventsHandler::initialize()
 {
     Trace::out("ButtonEventsHandler: Initializing...");
 
-    // Initialize button HAL
-    if (!board::hal::buttons::initialize())
+    // Register this handler as callback provider with ButtonsController
+    board::ButtonsController & controller = board::ButtonsController::getInstance();
+    if (!controller.registerCallback(this, &ButtonEventsHandler::onButtonChanged))
     {
-        Trace::out("ButtonEventsHandler: Failed to initialize button HAL");
+        Trace::out("ButtonEventsHandler: Failed to register callback with ButtonsController");
         return false;
     }
 
     // Start the behavior (XF active object)
     startBehavior();
 
+    // Start all button state machines
+    for (uint8_t i = 0; i < BUTTON_COUNT; ++i)
+    {
+        buttonStateMachines_[i]->startBehavior();
+    }
+
     Trace::out("ButtonEventsHandler: Initialized successfully");
     return true;
 }
 
-void ButtonEventsHandler::onIrq()
+void ButtonEventsHandler::onButtonChanged(uint16_t buttonIndex, bool pressed)
 {
-    // Called from button interrupt - push event to check buttons
-    pushEvent(evIrqReceived);
+    if (buttonIndex >= BUTTON_COUNT)
+    {
+        return;
+    }
+
+    Trace::out("ButtonEventsHandler: Button %u %s", buttonIndex, pressed ? "pressed" : "released");
+
+    // Forward to appropriate ButtonStateSm
+    if (pressed)
+    {
+        buttonStateMachines_[buttonIndex]->onButtonPressed();
+    }
+    else
+    {
+        buttonStateMachines_[buttonIndex]->onButtonReleased();
+    }
+}
+
+void ButtonEventsHandler::onButtonShortPressDetected(uint8_t buttonIndex)
+{
+    // Push internal event to decouple from ButtonStateSm
+    GEN(evInternalShortPress(buttonIndex, this));
+}
+
+void ButtonEventsHandler::onButtonLongPressDetected(uint8_t buttonIndex)
+{
+    // Push internal event to decouple from ButtonStateSm
+    GEN(evInternalLongPress(buttonIndex, this));
 }
 
 bool ButtonEventsHandler::subscribe(interface::ButtonEventsHandlerObserver * observer)
@@ -142,8 +209,7 @@ XFEventStatus ButtonEventsHandler::processEvent()
 {
     if (getCurrentEvent()->getEventType() == XFEvent::Initial)
     {
-        // Start periodic button checking
-        pushEvent(evButtonCheck, 10); // Check every 10ms
+        Trace::out("ButtonEventsHandler: State machine started");
         return XFEventStatus::Consumed;
     }
 
@@ -151,15 +217,19 @@ XFEventStatus ButtonEventsHandler::processEvent()
     {
         switch (getCurrentEvent()->getId())
         {
-        case evButtonCheck:
-            checkButtons();
-            pushEvent(evButtonCheck, 10); // Schedule next check
-            return XFEventStatus::Consumed;
+        case evNotifyShortPress:
+            {
+                const evInternalShortPress * event = static_cast<const evInternalShortPress *>(getCurrentEvent());
+                notifyButtonShortPressed(event->buttonIndex);
+                return XFEventStatus::Consumed;
+            }
 
-        case evIrqReceived:
-            // Button IRQ received - check buttons immediately
-            checkButtons();
-            return XFEventStatus::Consumed;
+        case evNotifyLongPress:
+            {
+                const evInternalLongPress * event = static_cast<const evInternalLongPress *>(getCurrentEvent());
+                notifyButtonLongPressed(event->buttonIndex);
+                return XFEventStatus::Consumed;
+            }
 
         default:
             break;
@@ -167,69 +237,6 @@ XFEventStatus ButtonEventsHandler::processEvent()
     }
 
     return XFEventStatus::Unknown;
-}
-
-void ButtonEventsHandler::checkButtons()
-{
-    uint32_t currentTime = k_uptime_get_32();
-
-    for (uint8_t i = 0; i < BUTTON_COUNT; ++i)
-    {
-        // Read current button state (active LOW)
-        bool currentPressed = !board::hal::buttons::isButtonPressed(i);
-
-        // Detect button press (transition from not pressed to pressed)
-        if (currentPressed && !buttonStates_[i].previousPressed)
-        {
-            handleButtonPress(i);
-        }
-        // Detect button release (transition from pressed to not pressed)
-        else if (!currentPressed && buttonStates_[i].previousPressed)
-        {
-            handleButtonRelease(i);
-        }
-        // Button held - check for long press
-        else if (currentPressed && buttonStates_[i].pressed)
-        {
-            uint32_t pressDuration = currentTime - buttonStates_[i].pressStartTime;
-            if (pressDuration >= LONG_PRESS_DURATION_MS && !buttonStates_[i].longPressNotified)
-            {
-                notifyButtonLongPressed(i);
-                buttonStates_[i].longPressNotified = true;
-            }
-        }
-
-        buttonStates_[i].previousPressed = currentPressed;
-    }
-}
-
-void ButtonEventsHandler::handleButtonPress(ButtonIndex buttonIndex)
-{
-    uint32_t currentTime = k_uptime_get_32();
-
-    Trace::out("ButtonEventsHandler: Button %u pressed", static_cast<unsigned int>(buttonIndex));
-
-    buttonStates_[buttonIndex].pressed = true;
-    buttonStates_[buttonIndex].pressStartTime = currentTime;
-    buttonStates_[buttonIndex].longPressNotified = false;
-}
-
-void ButtonEventsHandler::handleButtonRelease(ButtonIndex buttonIndex)
-{
-    uint32_t currentTime = k_uptime_get_32();
-    uint32_t pressDuration = currentTime - buttonStates_[buttonIndex].pressStartTime;
-
-    Trace::out("ButtonEventsHandler: Button %u released (duration: %u ms)",
-               static_cast<unsigned int>(buttonIndex), pressDuration);
-
-    // Only notify short press if long press was not already notified
-    if (!buttonStates_[buttonIndex].longPressNotified &&
-        pressDuration >= DEBOUNCE_TIME_MS)
-    {
-        notifyButtonShortPressed(buttonIndex);
-    }
-
-    buttonStates_[buttonIndex].pressed = false;
 }
 
 } // namespace button
