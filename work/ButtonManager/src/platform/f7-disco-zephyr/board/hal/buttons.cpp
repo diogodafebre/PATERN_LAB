@@ -1,6 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
-// #include "board/buttonscontroller.h"
+#include "board/buttonscontroller.h"
 #include "buttons.h"
 
 constexpr const uint32_t BUTTONS_COUNT = 4;
@@ -91,6 +91,5 @@ bool configure(struct gpio_dt_spec & button, struct gpio_callback & callbackHand
 
 void onButtonPressed_(const struct device * port, struct gpio_callback * cb, gpio_port_pins_t pins)
 {
-    // TODO: Uncomment code below
-    //ButtonsController::getInstance().onIrq();
+    board::ButtonsController::getInstance().onIrq();
 }
