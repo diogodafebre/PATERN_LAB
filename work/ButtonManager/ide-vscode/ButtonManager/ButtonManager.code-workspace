@@ -1,0 +1,84 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "name": "app",
+            "path": "../../src/app"
+        },
+        {
+            "name": "event",
+            "path": "../../src/event"
+        },
+        {
+            "name": "interface",
+            "path": "../../src/interface"
+        },
+        {
+            "name": "xf-includes",
+            "path": "../../src/xf/include"
+        },
+        {
+            "name": "xf-core",
+            "path": "../../src/xf/core"
+        },
+        {
+            "name": "xf-port-zephyr",
+            "path": "../../src/xf/port/zephyr"
+        },
+        {
+            "name": "mdw",
+            "path": "../../src/mdw"
+        },
+        {
+            "name": "platform",
+            "path": "../../src/platform"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/.git": true,
+            "**/.svn": true,
+            "**/.hg": true,
+            "**/CVS": true,
+            "**/.DS_Store": true,
+            "**/Thumbs.db": true,
+            ".vscode": false
+        },
+        "files.associations": {
+            "ostream": "cpp",
+            "*.tcc": "cpp",
+            "compare": "cpp",
+            "random": "cpp",
+            "array": "cpp",
+            "vector": "cpp",
+            "xstring": "cpp",
+            "xutility": "cpp",
+            "string": "cpp",
+            "string_view": "cpp",
+            "algorithm": "cpp",
+            "deque": "cpp",
+            "functional": "cpp",
+            "list": "cpp",
+            "memory": "cpp",
+            "system_error": "cpp",
+            "tuple": "cpp",
+            "type_traits": "cpp",
+            "unordered_map": "cpp",
+            "xhash": "cpp",
+            "xlocale": "cpp",
+            "xmemory": "cpp",
+            "queue": "cpp",
+            "xlocinfo": "cpp",
+            "xtr1common": "cpp",
+            "xiosbase": "cpp",
+            "iterator": "cpp",
+            "initializer_list": "c",
+            "cstdint": "cpp",
+            "xlocnum": "cpp",
+            "utility": "cpp",
+            "typeinfo": "cpp"
+        }
+    }
+}

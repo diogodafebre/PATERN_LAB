@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "STM32",
+            "includePath": [
+                "${userHome}/.platformio/packages/framework-zephyr/include",
+                "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include",
+                "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../../../src/xf/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "USE_XF_CORE_DISPATCHER_CLASS"
+            ],
+            "compilerPath": "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}

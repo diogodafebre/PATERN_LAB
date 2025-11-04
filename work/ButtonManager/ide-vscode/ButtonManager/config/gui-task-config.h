@@ -1,0 +1,4 @@
+#ifndef GUI_TASK_CONFIG_H
+#define GUI_TASK_CONFIG_H
+
+#endif // GUI_TASK_CONFIG_H

@@ -1,0 +1,5 @@
+# Copyright (c) 2024 HES-SO Valais, ECS, Sion
+# SPDX-License-Identifier: Apache-2.0
+
+config SHIELD_F7DISCO_EXTENSION_BOARD
+	def_bool $(shields_list_contains, f7disco_extension_board)

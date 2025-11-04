@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2024 HES-SO Valais, ECS, Sion
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+    leds {
+        compatible = "gpio-leds";
+
+        ext_led0: ext_led0 {
+            gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
+            label = "LED 0";
+        };
+
+        ext_led1: ext_led1 {
+            gpios = <&gpioh 6 GPIO_ACTIVE_HIGH>;
+            label = "LED 1";
+        };
+
+        ext_led2: ext_led2 {
+            gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>;
+            label = "LED 2";
+        };
+
+        ext_led3: ext_led3 {
+            gpios = <&gpiob 4 GPIO_ACTIVE_HIGH>;
+            label = "LED 3";
+        };
+    };
+
+    buttons {
+        compatible = "gpio-keys";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        ext_btn0: ext_btn0 {
+            gpios = <&gpioi 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+            label = "Button 0";
+        };
+
+        ext_btn1: ext_btn1 {
+            gpios = <&gpioi 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+            label = "Button 1";
+        };
+
+        ext_btn2: ext_btn2 {
+            gpios = <&gpiog 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+            label = "Button 2";
+        };
+
+        ext_btn3: ext_btn3 {
+            gpios = <&gpiog 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+            label = "Button 3";
+        };
+    
+    };
+
+    aliases {
+        ext-led0 = &ext_led0;
+        ext-led1 = &ext_led1;
+        ext-led2 = &ext_led2;
+        ext-led3 = &ext_led3;
+        
+        ext-btn0 = &ext_btn0;
+        ext-btn1 = &ext_btn1;
+        ext-btn2 = &ext_btn2;
+        ext-btn3 = &ext_btn3;
+    };
+};

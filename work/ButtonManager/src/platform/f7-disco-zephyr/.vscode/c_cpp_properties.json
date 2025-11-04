@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "STM32",
+            "includePath": [
+                "${userHome}/.platformio/packages/framework-zephyr/include",
+                "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include",
+                "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/**",
+                "${userHome}/.platformio/packages/framework-zephyr/_pio/modules/hal/stm32/stm32cube/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../../../src/xf/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "USE_PLATFORM_F7_DISCO_ZEPHYR_SYSMEM"
+            ],
+            "compilerPath": "${userHome}/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
